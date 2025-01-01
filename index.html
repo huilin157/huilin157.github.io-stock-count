@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票成本計算器</title>
+    <style>
+        body {
+            font-family: '微軟正黑體', Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .calculator {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            display: none;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>股票成本計算器</h1>
+        
+        <div class="input-group">
+            <h2>現有持股</h2>
+            <label for="current_price">每股價格（元）：</label>
+            <input type="number" id="current_price" min="0" step="0.01" required>
+            
+            <label for="current_shares">股數：</label>
+            <input type="number" id="current_shares" min="0" required>
+        </div>
+
+        <div class="input-group">
+            <h2>新購股票</h2>
+            <label for="new_price">每股價格（元）：</label>
+            <input type="number" id="new_price" min="0" step="0.01" required>
+            
+            <label for="new_shares">股數：</label>
+            <input type="number" id="new_shares" min="0" required>
+        </div>
+
+        <button onclick="calculate()">計算</button>
+
+        <div id="error" class="error"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function calculateFee(amount) {
+            const fee = amount * 0.000855;
+            return Math.max(fee, 1);
+        }
+
+        function formatNumber(number) {
+            return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function calculate() {
+            const currentPrice = parseFloat(document.getElementById('current_price').value) || 0;
+            const currentShares = parseInt(document.getElementById('current_shares').value) || 0;
+            const newPrice = parseFloat(document.getElementById('new_price').value) || 0;
+            const newShares = parseInt(document.getElementById('new_shares').value) || 0;
+
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+
+            // 驗證輸入
+            if (!currentPrice || !currentShares || !newPrice || !newShares) {
+                errorDiv.textContent = "請填寫所有欄位";
+                errorDiv.style.display = "block";
+                resultDiv.style.display = "none";
+                return;
+            }
+
+            // 驗證股數限制
+            if (newShares > 999) {
+                errorDiv.textContent = "單筆交易不能超過999股";
+                errorDiv.style.display = "block";
+                resultDiv.style.display = "none";
+                return;
+            }
+
+            // 計算結果
+            const currentCost = currentPrice * currentShares;
+            const newCost = newPrice * newShares;
+            const newFee = calculateFee(newCost);
+            const totalCost = currentCost + newCost + newFee;
+            const totalShares = currentShares + newShares;
+            const averageCost = totalCost / totalShares;
+
+            // 顯示結果
+            errorDiv.style.display = "none";
+            resultDiv.style.display = "block";
+            resultDiv.innerHTML = `
+                <div class="result-item">現有股票成本：${formatNumber(currentCost)} 元</div>
+                <div class="result-item">新購股票成本：${formatNumber(newCost)} 元</div>
+                <div class="result-item">新購手續費：${formatNumber(newFee)} 元</div>
+                <div class="result-item">總成本：${formatNumber(totalCost)} 元</div>
+                <div class="result-item">平均每股成本：${formatNumber(averageCost)} 元</div>
+            `;
+        }
+    </script>
+</body>
+</html>
