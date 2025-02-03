@@ -39,6 +39,20 @@
             box-sizing: border-box;
         }
 
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        select:hover {
+            border-color: #007bff;
+        }
+
         button {
             background-color: #007bff;
             color: white;
@@ -80,6 +94,13 @@
         <h1>股票成本計算器</h1>
         
         <div class="input-group">
+            <label for="stock_select">選擇股票：</label>
+            <select id="stock_select" onchange="loadStockData()">
+                <option value="">請選擇股票</option>
+            </select>
+        </div>
+
+        <div class="input-group">
             <h2>現有持股</h2>
             <label for="current_price">每股價格（元）：</label>
             <input type="number" id="current_price" min="0" step="0.01" required>
@@ -104,6 +125,57 @@
     </div>
 
     <script>
+        // 預設股票資料
+        const stockData = {
+            "2330": {
+                name: "台積電",
+                currentShares: 100,
+                currentPrice: 580
+            },
+            "2317": {
+                name: "鴻海",
+                currentShares: 200,
+                currentPrice: 120
+            },
+            "2454": {
+                name: "聯發科",
+                currentShares: 50,
+                currentPrice: 780
+            },
+            "2412": {
+                name: "中華電",
+                currentShares: 150,
+                currentPrice: 110
+            }
+        };
+
+        // 初始化下拉式選單
+        function initializeStockSelect() {
+            const select = document.getElementById('stock_select');
+            for (const [stockId, data] of Object.entries(stockData)) {
+                const option = document.createElement('option');
+                option.value = stockId;
+                option.textContent = `${stockId} ${data.name}`;
+                select.appendChild(option);
+            }
+        }
+
+        // 載入選擇的股票資料
+        function loadStockData() {
+            const select = document.getElementById('stock_select');
+            const selectedStock = select.value;
+            
+            if (selectedStock && stockData[selectedStock]) {
+                const stock = stockData[selectedStock];
+                document.getElementById('current_shares').value = stock.currentShares;
+                document.getElementById('current_price').value = stock.currentPrice;
+            } else {
+                // 清空欄位
+                document.getElementById('current_shares').value = '';
+                document.getElementById('current_price').value = '';
+            }
+        }
+
         function calculateFee(amount) {
             const fee = amount * 0.000855;
             return Math.max(fee, 1);
@@ -157,6 +229,11 @@
                 <div class="result-item">平均每股成本：${formatNumber(averageCost)} 元</div>
             `;
         }
+
+        // 在網頁載入時初始化下拉式選單
+        window.onload = function() {
+            initializeStockSelect();
+        };
     </script>
 </body>
 </html>
