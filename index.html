@@ -9,9 +9,11 @@
             --primary-bg: #f2f4f7;
             --brand-blue: #0052cc;
             --info-bg: #e3f2fd;
+            --result-bg: #f8f9fa;
             --text-dark: #172b4d;
             --text-gray: #6b778c;
             --accent-red: #ff5630;
+            --success-green: #36b37e;
             --border-color: #dfe1e6;
         }
 
@@ -49,13 +51,28 @@
             padding: 15px;
             border-radius: 12px;
             border-left: 5px solid var(--brand-blue);
-            display: none; /* 初始隱藏 */
+            display: none;
         }
 
         .info-title { font-weight: bold; color: var(--brand-blue); margin-bottom: 8px; font-size: 0.95rem; }
         .info-grid { display: flex; justify-content: space-between; font-size: 0.9rem; }
-        .info-item span { color: var(--text-gray); }
-        .info-item b { color: var(--text-dark); }
+
+        /* 試算結果明細區塊 */
+        #purchase-detail-display {
+            background: #ffffff;
+            margin: 12px 16px;
+            padding: 18px;
+            border-radius: 16px;
+            border: 1px solid var(--brand-blue);
+            display: none;
+        }
+
+        .detail-row {
+            display: flex; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+        .detail-row:last-child { border-bottom: none; font-weight: bold; color: var(--brand-blue); }
 
         .card {
             background: white; margin: 12px 16px; padding: 18px;
@@ -85,9 +102,9 @@
 
     <div class="dashboard">
         <div class="stat-card">
-            <div class="stat-label">預估回本價 (小數點後二位)</div>
+            <div class="stat-label">預估回本價 (賣出價)</div>
             <div id="v-breakeven" class="stat-value">--.--</div>
-            <div style="font-size: 0.85rem; color: var(--text-gray);">平均成本：<span id="v-avg">--</span></div>
+            <div style="font-size: 0.85rem; color: var(--text-gray);">買入後平均成本：<span id="v-avg">--</span></div>
         </div>
     </div>
 
@@ -111,6 +128,13 @@
         </div>
     </div>
 
+    <div id="purchase-detail-display">
+        <div class="info-title">此次買入試算明細</div>
+        <div class="detail-row"><span>預計買入價金</span><span id="d-trade-amt">0</span></div>
+        <div class="detail-row"><span>預估買進手續費</span><span id="d-fee">0</span></div>
+        <div class="detail-row"><span>預計總支出金額</span><span id="d-total-out">0</span></div>
+    </div>
+
     <div class="card">
         <h2>交易資料確認</h2>
         <div style="display: flex; gap: 10px;">
@@ -125,7 +149,7 @@
         </div>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
         <div class="input-row">
-            <label>稅率</label>
+            <label>稅率類別</label>
             <select id="tax_type">
                 <option value="0.003">一般股票 (0.3%)</option>
                 <option value="0.001">ETF (0.1%)</option>
@@ -143,7 +167,7 @@
         </div>
     </div>
 
-    <button onclick="calculateAll()">試算買入後回本價</button>
+    <button onclick="calculateAll()">開始計算</button>
 </div>
 
 <script>
@@ -160,13 +184,11 @@
         
         if (id && presets[id]) {
             const data = presets[id];
-            // 更新唯讀顯示
             document.getElementById('display-name').innerText = id + " " + data.name;
             document.getElementById('display-shares').innerText = data.shares.toLocaleString();
             document.getElementById('display-price').innerText = data.price.toFixed(2);
             infoDiv.style.display = 'block';
 
-            // 同時填入輸入框方便試算
             document.getElementById('curr_price').value = data.price;
             document.getElementById('curr_shares').value = data.shares;
             document.getElementById('tax_type').value = data.tax;
@@ -181,11 +203,18 @@
         const np = parseFloat(document.getElementById('new_price').value) || 0;
         const nq = parseInt(document.getElementById('new_shares').value) || 0;
         const taxRate = parseFloat(document.getElementById('tax_type').value);
-        const feeRate = 0.000855; // 元大手續費 (6折)
+        const feeRate = 0.000855; // 元大電子單 6 折
 
         if (!np || !nq) { alert("請輸入增購資訊"); return; }
 
-        const totalCost = (cp * cq) + (np * nq) + Math.max(1, Math.floor(np * nq * feeRate));
+        // 計算新購明細
+        const newTradeAmt = np * nq;
+        const newFee = Math.max(1, Math.floor(newTradeAmt * feeRate)); // 最低 1 元
+        const newTotalSpending = newTradeAmt + newFee;
+
+        // 計算總平均成本
+        const currentCost = cp * cq;
+        const totalCost = currentCost + newTotalSpending;
         const totalShares = cq + nq;
         const avgPrice = totalCost / totalShares;
 
@@ -201,8 +230,17 @@
             if (sellPrice > avgPrice * 2) break;
         }
 
+        // 更新 UI
         document.getElementById('v-breakeven').innerText = sellPrice.toFixed(2);
         document.getElementById('v-avg').innerText = avgPrice.toFixed(2);
+
+        // 顯示買入明細
+        const detailDiv = document.getElementById('purchase-detail-display');
+        document.getElementById('d-trade-amt').innerText = newTradeAmt.toLocaleString() + " 元";
+        document.getElementById('d-fee').innerText = newFee.toLocaleString() + " 元";
+        document.getElementById('d-total-out').innerText = newTotalSpending.toLocaleString() + " 元";
+        detailDiv.style.display = 'block';
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
