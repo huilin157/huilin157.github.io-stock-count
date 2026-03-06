@@ -6,221 +6,209 @@
     <title>元大零股助手</title>
     <style>
         :root {
-            --primary-color: #0052cc;
-            --secondary-color: #f4f5f7;
-            --accent-color: #ff5630;
-            --success-color: #36b37e;
-            --text-main: #172b4d;
+            --primary-bg: #f2f4f7;
+            --card-bg: #ffffff;
+            --brand-blue: #0052cc;
+            --text-dark: #172b4d;
+            --text-gray: #6b778c;
+            --accent-red: #ff5630;
+            --border-color: #dfe1e6;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 0;
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            margin: 0; padding: 0;
+            display: flex; justify-content: center;
         }
 
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-            background: #f0f2f5;
-            padding-bottom: 40px;
+        .app-shell {
+            width: 100%; max-width: 480px; min-height: 100vh;
+            padding-bottom: 50px;
         }
 
         header {
-            background: var(--primary-color);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: var(--brand-blue); color: white;
+            padding: 25px 20px; text-align: center;
+            border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        header h1 { margin: 0; font-size: 1.2rem; }
+        header h1 { margin: 0; font-size: 1.25rem; letter-spacing: 1px; }
 
-        /* 頂部總覽卡 */
-        .summary-card {
-            background: white;
-            margin: -20px 15px 20px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            text-align: center;
+        /* 頂部數據看板 */
+        .dashboard {
+            margin: -25px 16px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
         }
 
-        .summary-label { font-size: 0.9rem; color: #6b778c; margin-bottom: 5px; }
-        .breakeven-price { font-size: 2rem; font-weight: bold; color: var(--accent-color); margin: 5px 0; }
+        .stat-card {
+            background: white; padding: 15px; border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;
+        }
+
+        .stat-label { font-size: 0.75rem; color: var(--text-gray); margin-bottom: 4px; }
+        .stat-value { font-size: 1.1rem; font-weight: bold; color: var(--brand-blue); }
+        .stat-value.highlight { color: var(--accent-red); font-size: 1.4rem; }
 
         /* 輸入區域卡片 */
-        .input-card {
-            background: white;
-            margin: 15px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        .card {
+            background: white; margin: 12px 16px; padding: 18px;
+            border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        .input-card h2 { font-size: 1rem; margin-top: 0; color: var(--primary-color); border-left: 4px solid var(--primary-color); padding-left: 10px; }
+        .card h2 {
+            font-size: 0.95rem; margin: 0 0 15px 0; display: flex; align-items: center;
+            color: var(--brand-blue);
+        }
 
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; color: #5e6c84; margin-bottom: 5px; }
+        .card h2::before {
+            content: ""; display: inline-block; width: 4px; height: 16px;
+            background: var(--brand-blue); margin-right: 8px; border-radius: 2px;
+        }
+
+        .input-row { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; color: var(--text-gray); margin-bottom: 6px; }
+        
         input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #dfe1e6;
-            border-radius: 8px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            background: #fafbfc;
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: 10px; font-size: 1rem; box-sizing: border-box;
+            background: #fafbfc; transition: 0.2s;
         }
 
-        input:focus { outline: none; border-color: var(--primary-color); background: white; }
+        input:focus { outline: none; border-color: var(--brand-blue); background: white; }
 
-        /* 按鈕 */
-        .btn-calc {
-            background: var(--primary-color);
-            color: white;
-            width: calc(100% - 30px);
-            margin: 10px 15px;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,82,204,0.3);
+        button {
+            width: calc(100% - 32px); margin: 10px 16px; padding: 16px;
+            background: var(--brand-blue); color: white; border: none;
+            border-radius: 12px; font-size: 1.1rem; font-weight: bold;
+            box-shadow: 0 6px 15px rgba(0,82,204,0.25); cursor: pointer;
         }
 
-        .btn-calc:active { transform: scale(0.98); }
+        button:active { transform: scale(0.98); opacity: 0.9; }
 
-        /* 詳細結果區域 */
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px dashed #eee;
-            font-size: 0.95rem;
-        }
-
-        .detail-row:last-child { border-bottom: none; }
-        .val { font-weight: 500; }
+        .divider { border-top: 1px solid #eee; margin: 15px 0; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <header>
-        <h1>元大零股交易試算</h1>
-    </header>
+<div class="app-shell">
+    <header><h1>元大零股持倉助手</h1></header>
 
-    <div class="summary-card">
-        <div class="summary-label">預估回本價 (賣出價)</div>
-        <div id="res-breakeven" class="breakeven-price">--.--</div>
-        <div class="summary-label">需漲幅：<span id="res-percent">0.00</span>%</div>
+    <div class="dashboard">
+        <div class="stat-card" style="grid-column: span 2;">
+            <div class="stat-label">預估回本價 (目標賣出價)</div>
+            <div id="v-breakeven" class="stat-value highlight">--.--</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">平均每股成本</div>
+            <div id="v-avg" class="stat-value">--.--</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">總需漲幅</div>
+            <div id="v-percent" class="stat-value">0.00%</div>
+        </div>
     </div>
 
-    <div class="input-card">
-        <h2>交易設定</h2>
-        <div class="input-group">
-            <label>股票類型</label>
-            <select id="tax_type">
-                <option value="0.003">一般股票 (稅 0.3%)</option>
-                <option value="0.001">ETF / 受益憑證 (稅 0.1%)</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>快速選擇 (選填)</label>
-            <select id="stock_select" onchange="loadQuickData()">
+    <div class="card">
+        <h2>現有持股狀態</h2>
+        <div class="input-row">
+            <label>快速載入常用股票</label>
+            <select id="stock_preset" onchange="loadPreset()">
                 <option value="">-- 手動輸入 --</option>
+                <option value="00919">00919 群益精選高息</option>
                 <option value="2885">2885 元大金</option>
                 <option value="0050">0050 元大台灣50</option>
-                <option value="00919">00919 群益精選高息</option>
             </select>
         </div>
-    </div>
-
-    <div class="input-card">
-        <h2>預計買入</h2>
-        <div class="input-group">
-            <label>買入單價 (元)</label>
-            <input type="number" id="in_price" step="0.01" placeholder="請輸入成交價">
-        </div>
-        <div class="input-group">
-            <label>買入股數 (股)</label>
-            <input type="number" id="in_shares" placeholder="例：100">
+        <div style="display: flex; gap: 10px;">
+            <div class="input-row" style="flex: 1;">
+                <label>持倉價格</label>
+                <input type="number" id="curr_price" step="0.01" placeholder="0.00">
+            </div>
+            <div class="input-row" style="flex: 1;">
+                <label>持倉股數</label>
+                <input type="number" id="curr_shares" placeholder="0">
+            </div>
         </div>
     </div>
 
-    <button class="btn-calc" onclick="doCalculate()">立即試算</button>
-
-    <div class="input-card" id="detail-box" style="display:none;">
-        <h2>詳細成本分析</h2>
-        <div class="detail-row"><span>成交總額</span><span class="val" id="d-raw">0</span></div>
-        <div class="detail-row"><span>買進手續費 (6折)</span><span class="val" id="d-fee">0</span></div>
-        <div class="detail-row"><span>實付總成本</span><span class="val" id="d-total">0</span></div>
+    <div class="card">
+        <h2>預計買入 (新購)</h2>
+        <div class="input-row">
+            <label>稅率類別</label>
+            <select id="tax_type">
+                <option value="0.003">一般股票 (0.3%)</option>
+                <option value="0.001">ETF / 受益憑證 (0.1%)</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div class="input-row" style="flex: 1;">
+                <label>增購單價</label>
+                <input type="number" id="new_price" step="0.01" placeholder="0.00">
+            </div>
+            <div class="input-row" style="flex: 1;">
+                <label>增購股數</label>
+                <input type="number" id="new_shares" placeholder="1-999">
+            </div>
+        </div>
     </div>
+
+    <button onclick="calculateAll()">開始計算並試算回本</button>
 </div>
 
 <script>
-    const quickData = {
-        "2885": { price: 30.8, type: "0.003" },
-        "0050": { price: 195.5, type: "0.001" },
-        "00919": { price: 23.2, type: "0.001" }
+    // 預設資料
+    const presets = {
+        "00919": { name: "群益台灣精選高息", shares: 1000, price: 23.21, tax: "0.001" },
+        "2885": { name: "元大金", shares: 1000, price: 30.8, tax: "0.003" },
+        "0050": { name: "元大台灣50", shares: 100, price: 61.75, tax: "0.001" }
     };
 
-    function loadQuickData() {
-        const id = document.getElementById('stock_select').value;
-        if (id && quickData[id]) {
-            document.getElementById('in_price').value = quickData[id].price;
-            document.getElementById('tax_type').value = quickData[id].type;
+    function loadPreset() {
+        const id = document.getElementById('stock_preset').value;
+        if (id && presets[id]) {
+            document.getElementById('curr_price').value = presets[id].price;
+            document.getElementById('curr_shares').value = presets[id].shares;
+            document.getElementById('tax_type').value = presets[id].tax;
         }
     }
 
-    function doCalculate() {
-        const P = parseFloat(document.getElementById('in_price').value);
-        const Q = parseInt(document.getElementById('in_shares').value);
+    function calculateAll() {
+        const cp = parseFloat(document.getElementById('curr_price').value) || 0;
+        const cq = parseInt(document.getElementById('curr_shares').value) || 0;
+        const np = parseFloat(document.getElementById('new_price').value) || 0;
+        const nq = parseInt(document.getElementById('new_shares').value) || 0;
         const taxRate = parseFloat(document.getElementById('tax_type').value);
-        const feeRate = 0.000855; // 元大電子單 6 折
+        const feeRate = 0.000855; // 元大 6 折
 
-        if (!P || !Q) {
-            alert("請填寫買入價格與股數");
-            return;
-        }
+        if (!np || !nq) { alert("請輸入增購價格與股數"); return; }
 
-        // 1. 買進計算
-        const rawAmount = P * Q;
-        const buyFee = Math.max(1, Math.floor(rawAmount * feeRate));
-        const totalOutlay = rawAmount + buyFee;
+        // 1. 計算總成本 (含新購手續費)
+        const currentCost = cp * cq;
+        const newTradeAmt = np * nq;
+        const newFee = Math.max(1, Math.floor(newTradeAmt * feeRate));
+        const totalCost = currentCost + newTradeAmt + newFee;
+        const totalShares = cq + nq;
+        const avgPrice = totalCost / totalShares;
 
-        // 2. 暴力搜尋回本價 (確保精確到 0.01)
-        let sellP = P;
+        // 2. 試算回本價 (考量賣出時的手續費與稅)
+        let sellPrice = avgPrice;
         let netGet = 0;
-        while (netGet < totalOutlay) {
-            sellP += 0.01;
-            let sRaw = sellP * Q;
+        while (netGet < totalCost) {
+            sellPrice += 0.01;
+            let sRaw = sellPrice * totalShares;
             let sFee = Math.max(1, Math.floor(sRaw * feeRate));
             let sTax = Math.floor(sRaw * taxRate);
             netGet = sRaw - sFee - sTax;
-            if (sellP > P * 1.5) break; 
+            if (sellPrice > avgPrice * 2) break;
         }
 
-        // 3. 更新介面 (取小數點後兩位)
-        document.getElementById('res-breakeven').innerText = sellP.toFixed(2);
-        const diffPercent = ((sellP - P) / P * 100).toFixed(2);
-        document.getElementById('res-percent').innerText = diffPercent;
-
-        // 詳細列表
-        document.getElementById('detail-box').style.display = 'block';
-        document.getElementById('d-raw').innerText = rawAmount.toLocaleString() + " 元";
-        document.getElementById('d-fee').innerText = buyFee + " 元";
-        document.getElementById('d-total').innerText = totalOutlay.toLocaleString() + " 元";
-
-        // 自動捲動到頂部看結果
+        // 3. UI 更新
+        document.getElementById('v-breakeven').innerText = sellPrice.toFixed(2);
+        document.getElementById('v-avg').innerText = avgPrice.toFixed(2);
+        document.getElementById('v-percent').innerText = (((sellPrice - avgPrice) / avgPrice) * 100).toFixed(2) + "%";
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
