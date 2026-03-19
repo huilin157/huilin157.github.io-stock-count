@@ -3,246 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>元大零股助手</title>
+    <title>股票助手</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-bg: #f2f4f7;
-            --brand-blue: #0052cc;
-            --info-bg: #e3f2fd;
-            --result-bg: #f8f9fa;
-            --text-dark: #172b4d;
+            --tw-blue: #0052cc;
+            --tw-light: #e3f2fd;
+            --us-gold: #b8860b;
+            --us-dark: #1a1a2e;
+            --us-accent: #f0c040;
+            --us-card: #16213e;
+            --us-border: #0f3460;
+            --bg: #f2f4f7;
+            --white: #ffffff;
             --text-gray: #6b778c;
-            --accent-red: #ff5630;
-            --success-green: #36b37e;
-            --border-color: #dfe1e6;
+            --border: #dfe1e6;
+            --text-dark: #172b4d;
+            --red: #ff5630;
+            --green: #36b37e;
+            --radius: 16px;
+            --mono: 'DM Mono', monospace;
+            --sans: 'Noto Sans TC', sans-serif;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto;
-            background-color: var(--primary-bg);
-            margin: 0; padding: 0;
-            display: flex; justify-content: center;
+            font-family: var(--sans);
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        .app-shell { width: 100%; max-width: 480px; min-height: 100vh; padding-bottom: 50px; }
-
-        header {
-            background: var(--brand-blue); color: white;
-            padding: 25px 20px; text-align: center;
-            border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+        .app-shell {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        header h1 { margin: 0; font-size: 1.25rem; }
+        /* ── TAB NAV ── */
+        .tab-nav {
+            display: flex;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        .dashboard { margin: -25px 16px 20px; }
+        .tab-btn {
+            flex: 1;
+            padding: 18px 0 14px;
+            border: none;
+            font-family: var(--sans);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: all 0.25s ease;
+        }
+
+        .tab-btn.tw {
+            background: var(--tw-blue);
+            color: white;
+        }
+
+        .tab-btn.us {
+            background: var(--us-dark);
+            color: var(--us-accent);
+        }
+
+        .tab-btn.inactive {
+            opacity: 0.45;
+            filter: grayscale(0.3);
+        }
+
+        /* ── PANELS ── */
+        .panel { display: none; flex-direction: column; padding-bottom: 60px; }
+        .panel.active { display: flex; }
+
+        /* ── TW PANEL (original style) ── */
+        .tw-header {
+            background: var(--tw-blue);
+            color: white;
+            padding: 28px 20px 50px;
+            text-align: center;
+        }
+
+        .tw-header h2 { font-size: 1.1rem; font-weight: 700; }
+        .tw-header p { font-size: 0.8rem; opacity: 0.75; margin-top: 4px; }
+
+        .tw-dashboard {
+            margin: -28px 16px 20px;
+        }
 
         .stat-card {
-            background: white; padding: 20px; border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;
+            background: white;
+            padding: 22px;
+            border-radius: var(--radius);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+            text-align: center;
         }
 
-        .stat-label { font-size: 0.85rem; color: var(--text-gray); }
-        .stat-value { font-size: 2rem; font-weight: bold; color: var(--accent-red); margin: 5px 0; }
+        .stat-label { font-size: 0.8rem; color: var(--text-gray); }
+        .stat-value { font-size: 2.2rem; font-weight: 700; color: var(--red); margin: 6px 0; font-family: var(--mono); }
+        .stat-sub { font-size: 0.82rem; color: var(--text-gray); }
+        .stat-sub b { color: var(--text-dark); font-family: var(--mono); }
 
-        /* 唯讀持倉資訊區塊 */
-        #stock-info-display {
-            background: var(--info-bg);
-            margin: 0 16px 15px;
-            padding: 15px;
+        .info-banner {
+            background: var(--tw-light);
+            margin: 0 16px 14px;
+            padding: 14px 16px;
             border-radius: 12px;
-            border-left: 5px solid var(--brand-blue);
+            border-left: 4px solid var(--tw-blue);
             display: none;
         }
 
-        .info-title { font-weight: bold; color: var(--brand-blue); margin-bottom: 8px; font-size: 0.95rem; }
-        .info-grid { display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .info-banner .banner-title { font-weight: 700; color: var(--tw-blue); font-size: 0.9rem; margin-bottom: 7px; }
+        .info-banner .banner-grid { display: flex; gap: 20px; font-size: 0.88rem; color: var(--text-dark); }
 
-        /* 試算結果明細區塊 */
-        #purchase-detail-display {
-            background: #ffffff;
-            margin: 12px 16px;
+        .detail-panel {
+            background: white;
+            margin: 0 16px 14px;
             padding: 18px;
-            border-radius: 16px;
-            border: 1px solid var(--brand-blue);
+            border-radius: var(--radius);
+            border: 1.5px solid var(--tw-blue);
             display: none;
         }
+
+        .detail-title { font-weight: 700; color: var(--tw-blue); font-size: 0.88rem; margin-bottom: 10px; }
 
         .detail-row {
-            display: flex; justify-content: space-between;
-            padding: 8px 0; border-bottom: 1px solid #f0f0f0;
-            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.92rem;
         }
-        .detail-row:last-child { border-bottom: none; font-weight: bold; color: var(--brand-blue); }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: var(--tw-blue);
+        }
 
         .card {
-            background: white; margin: 12px 16px; padding: 18px;
-            border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            background: white;
+            margin: 0 16px 14px;
+            padding: 18px;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        .card h2 { font-size: 0.95rem; margin: 0 0 15px 0; color: var(--brand-blue); }
-        .input-row { margin-bottom: 15px; }
-        label { display: block; font-size: 0.8rem; color: var(--text-gray); margin-bottom: 6px; }
-        
+        .card h3 { font-size: 0.88rem; color: var(--tw-blue); margin-bottom: 14px; font-weight: 700; }
+
+        .input-row { margin-bottom: 13px; }
+        .input-row label { display: block; font-size: 0.78rem; color: var(--text-gray); margin-bottom: 5px; }
+
         input, select {
-            width: 100%; padding: 12px; border: 1px solid var(--border-color);
-            border-radius: 10px; font-size: 1rem; box-sizing: border-box; background: #fafbfc;
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: var(--sans);
+            background: #fafbfc;
+            color: var(--text-dark);
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        button {
-            width: calc(100% - 32px); margin: 10px 16px; padding: 16px;
-            background: var(--brand-blue); color: white; border: none;
-            border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        input:focus, select:focus { border-color: var(--tw-blue); }
+
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row .input-row { flex: 1; }
+
+        .tw-btn {
+            width: calc(100% - 32px);
+            margin: 6px 16px 0;
+            padding: 16px;
+            background: var(--tw-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: var(--sans);
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
+
+        .tw-btn:active { opacity: 0.85; }
+
+        /* ── US PANEL ── */
+        .us-header {
+            background: var(--us-dark);
+            color: white;
+            padding: 28px 20px 50px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .us-header::before {
+            content: '$';
+            position: absolute;
+            font-family: var(--mono);
+            font-size: 9rem;
+            font-weight: 500;
+            color: rgba(240,192,64,0.07);
+            right: -10px;
+            top: -15px;
+            line-height: 1;
+        }
+
+        .us-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--us-accent); }
+        .us-header p { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+        .us-dashboard { margin: -28px 16px 20px; }
+
+        .us-stat-card {
+            background: var(--us-card);
+            padding: 22px;
+            border-radius: var(--radius);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            text-align: center;
+            border: 1px solid var(--us-border);
+        }
+
+        .us-stat-label { font-size: 0.8rem; color: rgba(255,255,255,0.45); }
+
+        .us-stat-value {
+            font-size: 2.4rem;
+            font-weight: 500;
+            color: var(--us-accent);
+            margin: 8px 0 4px;
+            font-family: var(--mono);
+        }
+
+        .us-stat-grid {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 10px;
+        }
+
+        .us-stat-mini { text-align: center; }
+        .us-stat-mini .mini-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
+        .us-stat-mini .mini-val { font-size: 0.95rem; font-family: var(--mono); color: white; font-weight: 500; margin-top: 2px; }
+
+        .us-card {
+            background: var(--us-card);
+            margin: 0 16px 14px;
+            padding: 18px;
+            border-radius: var(--radius);
+            border: 1px solid var(--us-border);
+        }
+
+        .us-card h3 { font-size: 0.88rem; color: var(--us-accent); margin-bottom: 14px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+        .us-card input, .us-card select {
+            background: #0d1b35;
+            border-color: var(--us-border);
+            color: white;
+        }
+
+        .us-card input:focus, .us-card select:focus { border-color: var(--us-accent); }
+        .us-card input::placeholder { color: rgba(255,255,255,0.25); }
+        .us-card label { color: rgba(255,255,255,0.5); }
+        .us-card select option { background: var(--us-card); }
+
+        .us-detail-panel {
+            background: #0d1b35;
+            margin: 0 16px 14px;
+            padding: 18px;
+            border-radius: var(--radius);
+            border: 1px solid var(--us-accent);
+            display: none;
+        }
+
+        .us-detail-title { font-size: 0.82rem; color: var(--us-accent); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; }
+
+        .us-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.9rem;
+        }
+
+        .us-detail-row .row-label { color: rgba(255,255,255,0.5); }
+        .us-detail-row .row-val { color: white; font-family: var(--mono); }
+
+        .us-detail-row:last-child {
+            border-bottom: none;
+            padding-top: 12px;
+        }
+
+        .us-detail-row:last-child .row-label { color: var(--us-accent); font-weight: 700; font-size: 0.95rem; }
+        .us-detail-row:last-child .row-val { color: var(--us-accent); font-size: 1.4rem; font-weight: 500; }
+
+        .us-fee-note {
+            margin: 0 16px 14px;
+            padding: 12px 14px;
+            background: rgba(240,192,64,0.08);
+            border-radius: 10px;
+            border-left: 3px solid var(--us-accent);
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+        }
+
+        .us-fee-note b { color: var(--us-accent); }
+
+        .us-btn {
+            width: calc(100% - 32px);
+            margin: 6px 16px 0;
+            padding: 16px;
+            background: var(--us-accent);
+            color: var(--us-dark);
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: var(--sans);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .us-btn:active { opacity: 0.85; }
+
+        .us-panel-bg {
+            background: #0a1628;
+            flex: 1;
+        }
+
+        hr.card-divider { border: 0; border-top: 1px solid #eee; margin: 10px 0; }
+        hr.us-divider { border: 0; border-top: 1px solid var(--us-border); margin: 10px 0; }
+
+        /* result highlight */
+        .result-highlight {
+            background: rgba(54,179,126,0.12);
+            border-radius: 8px;
+            padding: 4px 8px;
+            color: #36b37e;
+            font-family: var(--mono);
+            font-weight: 700;
+        }
+
+        .warning { color: var(--red) !important; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
-    <header><h1>元大零股助手</h1></header>
+    <!-- TAB NAV -->
+    <div class="tab-nav">
+        <button class="tab-btn tw" id="tab-tw" onclick="switchTab('tw')">🇹🇼 台股零股</button>
+        <button class="tab-btn us inactive" id="tab-us" onclick="switchTab('us')">🇺🇸 美股試算</button>
+    </div>
 
-    <div class="dashboard">
-        <div class="stat-card">
-            <div class="stat-label">預估回本價 (賣出價)</div>
-            <div id="v-breakeven" class="stat-value">--.--</div>
-            <div style="font-size: 0.85rem; color: var(--text-gray);">買入後平均成本：<span id="v-avg">--</span></div>
+    <!-- ═══════════ TW PANEL ═══════════ -->
+    <div class="panel active" id="panel-tw">
+        <div class="tw-header">
+            <h2>元大零股助手</h2>
+            <p>試算回本價與加碼成本</p>
         </div>
-    </div>
 
-    <div class="card">
-        <h2>選擇股票</h2>
-        <div class="input-row">
-            <select id="stock_preset" onchange="onStockChange()">
-                <option value="">-- 請選擇或手動輸入 --</option>
-                <option value="00919">00919 群益精選高息</option>
-                <option value="2885">2885 元大金</option>
-                <option value="0050">0050 元大台灣50</option>
-            </select>
-        </div>
-    </div>
-
-    <div id="stock-info-display">
-        <div class="info-title" id="display-name">股票名稱</div>
-        <div class="info-grid">
-            <div class="info-item"><span>持有股數：</span><b id="display-shares">0</b></div>
-            <div class="info-item"><span>持有單價：</span><b id="display-price">0</b></div>
-        </div>
-    </div>
-
-    <div id="purchase-detail-display">
-        <div class="info-title">此次買入試算明細</div>
-        <div class="detail-row"><span>預計買入價金</span><span id="d-trade-amt">0</span></div>
-        <div class="detail-row"><span>預估買進手續費</span><span id="d-fee">0</span></div>
-        <div class="detail-row"><span>預計總支出金額</span><span id="d-total-out">0</span></div>
-    </div>
-
-    <div class="card">
-        <h2>交易資料確認</h2>
-        <div style="display: flex; gap: 10px;">
-            <div class="input-row" style="flex: 1;">
-                <label>持倉單價</label>
-                <input type="number" id="curr_price" step="0.01">
-            </div>
-            <div class="input-row" style="flex: 1;">
-                <label>持倉股數</label>
-                <input type="number" id="curr_shares">
+        <div class="tw-dashboard">
+            <div class="stat-card">
+                <div class="stat-label">預估回本價（賣出價）</div>
+                <div id="v-breakeven" class="stat-value">--.--</div>
+                <div class="stat-sub">買入後平均成本：<b><span id="v-avg">--</span></b></div>
             </div>
         </div>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-        <div class="input-row">
-            <label>稅率類別</label>
-            <select id="tax_type">
-                <option value="0.003">一般股票 (0.3%)</option>
-                <option value="0.001">ETF (0.1%)</option>
-            </select>
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <div class="input-row" style="flex: 1;">
-                <label>增購單價</label>
-                <input type="number" id="new_price" step="0.01" placeholder="新購價格">
-            </div>
-            <div class="input-row" style="flex: 1;">
-                <label>增購股數</label>
-                <input type="number" id="new_shares" placeholder="新購股數">
+
+        <div class="card">
+            <h3>選擇股票</h3>
+            <div class="input-row">
+                <select id="stock_preset" onchange="onStockChange()">
+                    <option value="">-- 請選擇或手動輸入 --</option>
+                    <option value="00919">00919 群益精選高息</option>
+                    <option value="2885">2885 元大金</option>
+                    <option value="0050">0050 元大台灣50</option>
+                </select>
             </div>
         </div>
+
+        <div class="info-banner" id="stock-info-display">
+            <div class="banner-title" id="display-name">股票名稱</div>
+            <div class="banner-grid">
+                <div>持有股數：<b id="display-shares">0</b></div>
+                <div>持有單價：<b id="display-price">0</b></div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="purchase-detail-display">
+            <div class="detail-title">此次買入試算明細</div>
+            <div class="detail-row"><span>預計買入價金</span><span id="d-trade-amt">0</span></div>
+            <div class="detail-row"><span>預估買進手續費</span><span id="d-fee">0</span></div>
+            <div class="detail-row"><span>預計總支出金額</span><span id="d-total-out">0</span></div>
+        </div>
+
+        <div class="card">
+            <h3>交易資料確認</h3>
+            <div class="flex-row">
+                <div class="input-row">
+                    <label>持倉單價</label>
+                    <input type="number" id="curr_price" step="0.01">
+                </div>
+                <div class="input-row">
+                    <label>持倉股數</label>
+                    <input type="number" id="curr_shares">
+                </div>
+            </div>
+            <hr class="card-divider">
+            <div class="input-row">
+                <label>稅率類別</label>
+                <select id="tax_type">
+                    <option value="0.003">一般股票 (0.3%)</option>
+                    <option value="0.001">ETF (0.1%)</option>
+                </select>
+            </div>
+            <div class="flex-row">
+                <div class="input-row">
+                    <label>增購單價</label>
+                    <input type="number" id="new_price" step="0.01" placeholder="新購價格">
+                </div>
+                <div class="input-row">
+                    <label>增購股數</label>
+                    <input type="number" id="new_shares" placeholder="新購股數">
+                </div>
+            </div>
+        </div>
+
+        <button class="tw-btn" onclick="calculateTW()">開始計算</button>
     </div>
 
-    <button onclick="calculateAll()">開始計算</button>
+    <!-- ═══════════ US PANEL ═══════════ -->
+    <div class="panel us-panel-bg" id="panel-us">
+        <div class="us-header">
+            <h2>國泰美股計算機</h2>
+            <p>複委託 · 網路單 0.08% · 無低消</p>
+        </div>
+
+        <div class="us-dashboard">
+            <div class="us-stat-card">
+                <div class="us-stat-label">最多可買股數</div>
+                <div id="u-max-shares" class="us-stat-value">-- 股</div>
+                <div class="us-stat-grid">
+                    <div class="us-stat-mini">
+                        <div class="mini-label">預計花費</div>
+                        <div class="mini-val" id="u-spend">$ --</div>
+                    </div>
+                    <div class="us-stat-mini">
+                        <div class="mini-label">手續費</div>
+                        <div class="mini-val" id="u-fee">$ --</div>
+                    </div>
+                    <div class="us-stat-mini">
+                        <div class="mini-label">剩餘美金</div>
+                        <div class="mini-val" id="u-remain">$ --</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="us-card">
+            <h3>交易資訊</h3>
+            <div class="flex-row">
+                <div class="input-row">
+                    <label>目標股票代號</label>
+                    <input type="text" id="u-ticker" placeholder="e.g. AAPL、VOO" style="text-transform:uppercase;">
+                </div>
+                <div class="input-row">
+                    <label>交易類型</label>
+                    <select id="u-type">
+                        <option value="stock">個股</option>
+                        <option value="etf">ETF</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-row">
+                <label>目標股價（USD）</label>
+                <input type="number" id="u-price" step="0.01" placeholder="0.00">
+            </div>
+            <hr class="us-divider">
+            <div class="input-row">
+                <label>現有美金（USD）</label>
+                <input type="number" id="u-budget" step="0.01" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="us-fee-note">
+            <b>國泰複委託手續費（優惠至 2026/12/31）</b><br>
+            個股：成交金額 × 0.08%，<b>無低消</b><br>
+            ETF：買賣均一價每筆 <b>$3 USD</b>
+        </div>
+
+        <div class="us-detail-panel" id="us-detail-panel">
+            <div class="us-detail-title">試算明細</div>
+            <div class="us-detail-row"><span class="row-label">股票代號</span><span class="row-val" id="ud-ticker">--</span></div>
+            <div class="us-detail-row"><span class="row-label">每股價格</span><span class="row-val" id="ud-price">--</span></div>
+            <div class="us-detail-row"><span class="row-label">股票成交金額</span><span class="row-val" id="ud-trade">--</span></div>
+            <div class="us-detail-row"><span class="row-label">手續費</span><span class="row-val" id="ud-fee">--</span></div>
+            <div class="us-detail-row"><span class="row-label">總支出</span><span class="row-val" id="ud-total">--</span></div>
+            <div class="us-detail-row"><span class="row-label">剩餘資金</span><span class="row-val" id="ud-remain">--</span></div>
+            <div class="us-detail-row"><span class="row-label">最多可買</span><span class="row-val" id="ud-max">--</span></div>
+        </div>
+
+        <button class="us-btn" onclick="calculateUS()">💵 開始試算</button>
+    </div>
 </div>
 
 <script>
-    // 預設資料
+    // ── TAB SWITCH ──
+    function switchTab(tab) {
+        document.getElementById('panel-tw').classList.toggle('active', tab === 'tw');
+        document.getElementById('panel-us').classList.toggle('active', tab === 'us');
+        document.getElementById('tab-tw').classList.toggle('inactive', tab !== 'tw');
+        document.getElementById('tab-us').classList.toggle('inactive', tab !== 'us');
+    }
+
+    // ── TW LOGIC ──
     const presets = {
         "00919": { name: "群益台灣精選高息", shares: 1000, price: 23.21, tax: "0.001" },
-        "2885": { name: "元大金", shares: 1000, price: 30.8, tax: "0.003" },
-        "0050": { name: "元大台灣50", shares: 100, price: 61.75, tax: "0.001" }
+        "2885":  { name: "元大金",           shares: 1000, price: 30.8,  tax: "0.003" },
+        "0050":  { name: "元大台灣50",       shares: 100,  price: 61.75, tax: "0.001" }
     };
 
     function onStockChange() {
         const id = document.getElementById('stock_preset').value;
         const infoDiv = document.getElementById('stock-info-display');
-        
         if (id && presets[id]) {
-            const data = presets[id];
-            document.getElementById('display-name').innerText = id + " " + data.name;
-            document.getElementById('display-shares').innerText = data.shares.toLocaleString();
-            document.getElementById('display-price').innerText = data.price.toFixed(2);
+            const d = presets[id];
+            document.getElementById('display-name').innerText = id + " " + d.name;
+            document.getElementById('display-shares').innerText = d.shares.toLocaleString();
+            document.getElementById('display-price').innerText = d.price.toFixed(2);
             infoDiv.style.display = 'block';
-
-            document.getElementById('curr_price').value = data.price;
-            document.getElementById('curr_shares').value = data.shares;
-            document.getElementById('tax_type').value = data.tax;
+            document.getElementById('curr_price').value = d.price;
+            document.getElementById('curr_shares').value = d.shares;
+            document.getElementById('tax_type').value = d.tax;
         } else {
             infoDiv.style.display = 'none';
         }
     }
 
-    function calculateAll() {
+    function calculateTW() {
         const cp = parseFloat(document.getElementById('curr_price').value) || 0;
         const cq = parseInt(document.getElementById('curr_shares').value) || 0;
         const np = parseFloat(document.getElementById('new_price').value) || 0;
         const nq = parseInt(document.getElementById('new_shares').value) || 0;
         const taxRate = parseFloat(document.getElementById('tax_type').value);
-        const feeRate = 0.000855; // 元大電子單 6 折
+        const feeRate = 0.000855;
 
         if (!np || !nq) { alert("請輸入增購資訊"); return; }
 
-        // 計算新購明細
         const newTradeAmt = np * nq;
-        const newFee = Math.max(1, Math.floor(newTradeAmt * feeRate)); // 最低 1 元
+        const newFee = Math.max(1, Math.floor(newTradeAmt * feeRate));
         const newTotalSpending = newTradeAmt + newFee;
 
-        // 計算總平均成本
-        const currentCost = cp * cq;
-        const totalCost = currentCost + newTotalSpending;
+        const totalCost = cp * cq + newTotalSpending;
         const totalShares = cq + nq;
         const avgPrice = totalCost / totalShares;
 
-        // 試算回本點
         let sellPrice = avgPrice;
         let net = 0;
         while (net < totalCost) {
             sellPrice += 0.01;
-            let sRaw = sellPrice * totalShares;
-            let sFee = Math.max(1, Math.floor(sRaw * feeRate));
-            let sTax = Math.floor(sRaw * taxRate);
+            const sRaw = sellPrice * totalShares;
+            const sFee = Math.max(1, Math.floor(sRaw * feeRate));
+            const sTax = Math.floor(sRaw * taxRate);
             net = sRaw - sFee - sTax;
             if (sellPrice > avgPrice * 2) break;
         }
 
-        // 更新 UI
         document.getElementById('v-breakeven').innerText = sellPrice.toFixed(2);
         document.getElementById('v-avg').innerText = avgPrice.toFixed(2);
 
-        // 顯示買入明細
-        const detailDiv = document.getElementById('purchase-detail-display');
         document.getElementById('d-trade-amt').innerText = newTradeAmt.toLocaleString() + " 元";
         document.getElementById('d-fee').innerText = newFee.toLocaleString() + " 元";
         document.getElementById('d-total-out').innerText = newTotalSpending.toLocaleString() + " 元";
-        detailDiv.style.display = 'block';
+        document.getElementById('purchase-detail-display').style.display = 'block';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── US LOGIC ──
+    function calculateUS() {
+        const ticker = document.getElementById('u-ticker').value.trim().toUpperCase();
+        const type   = document.getElementById('u-type').value;
+        const price  = parseFloat(document.getElementById('u-price').value) || 0;
+        const budget = parseFloat(document.getElementById('u-budget').value) || 0;
+
+        if (!price || !budget) { alert("請輸入股價與可用美金"); return; }
+        if (price <= 0 || budget <= 0) { alert("金額必須大於 0"); return; }
+
+        const isETF = type === 'etf';
+        const FEE_RATE = 0.0008; // 0.08%
+        const ETF_FEE  = 3;      // $3 flat
+
+        // Binary search: find max shares where total_cost <= budget
+        let maxShares = 0;
+        let bestFee = 0, bestTrade = 0, bestTotal = 0;
+
+        for (let n = Math.floor(budget / price); n >= 0; n--) {
+            const tradeAmt = price * n;
+            const fee = isETF ? ETF_FEE : tradeAmt * FEE_RATE;
+            const total = tradeAmt + fee;
+            if (total <= budget) {
+                maxShares = n;
+                bestFee   = fee;
+                bestTrade = tradeAmt;
+                bestTotal = total;
+                break;
+            }
+        }
+
+        const remain = budget - bestTotal;
+
+        // Update dashboard
+        document.getElementById('u-max-shares').innerText = maxShares + " 股";
+        document.getElementById('u-spend').innerText  = "$ " + bestTotal.toFixed(2);
+        document.getElementById('u-fee').innerText    = "$ " + bestFee.toFixed(2);
+        document.getElementById('u-remain').innerText = "$ " + remain.toFixed(2);
+
+        // Update detail panel
+        document.getElementById('ud-ticker').innerText = ticker || "--";
+        document.getElementById('ud-price').innerText  = "$ " + price.toFixed(2);
+        document.getElementById('ud-trade').innerText  = "$ " + bestTrade.toFixed(2);
+        document.getElementById('ud-fee').innerText    = isETF ? "$ 3.00 (ETF 均一價)" : "$ " + bestFee.toFixed(4);
+        document.getElementById('ud-total').innerText  = "$ " + bestTotal.toFixed(2);
+        document.getElementById('ud-remain').innerText = "$ " + remain.toFixed(2);
+        document.getElementById('ud-max').innerText    = maxShares + " 股";
+
+        document.getElementById('us-detail-panel').style.display = 'block';
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
+
 </body>
 </html>
